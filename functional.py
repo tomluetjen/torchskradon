@@ -112,8 +112,8 @@ def torchskiradon(radon_image, theta=None, output_size=None, filter_name="ramp",
     pad_width = (0, projection_size_padded - img_shape)
     img = F.pad(radon_image, (0, 0, pad_width[0], pad_width[1]), mode='constant', value=0)
     fourier_filter = get_fourier_filter(projection_size_padded, filter_name, device=img.device)
-    projection = torch.fft.fft(img, dim=2) * fourier_filter[torch.newaxis,torch.newaxis, :, :]
-    radon_filtered = torch.real(torch.fft.ifft(projection, dim=2)[:,:, :img_shape, :])
+    projection = torch.fft.fft(img, dim=2) * fourier_filter[None,None, :, :]
+    radon_filtered = torch.real(torch.fft.ifft(projection, dim=2)[:,:,:img_shape, :])
     reconstructed = torch.zeros((radon_image.size()[0], radon_image.size()[1], output_size, output_size), device=device, dtype=dtype)
     radius = output_size // 2
     xpr, ypr = torch.meshgrid(
@@ -123,12 +123,16 @@ def torchskiradon(radon_image, theta=None, output_size=None, filter_name="ramp",
     )
     x = torch.arange(img_shape, device=device) - img_shape // 2
     x = x.unsqueeze(0).unsqueeze(0)
+    x = torch.repeat_interleave(x, radon_image.size()[0], dim=0)
+    x = torch.repeat_interleave(x, radon_image.size()[1], dim=1)
     for i, angle in enumerate(torch.deg2rad(theta)):
         col = radon_filtered[:, :, :, i]
         t = ypr * torch.cos(angle) - xpr * torch.sin(angle)
         t_flat = t.flatten().unsqueeze(0).unsqueeze(0)
+        t_flat = torch.repeat_interleave(t_flat, radon_image.size()[0], dim=0)
+        t_flat = torch.repeat_interleave(t_flat, radon_image.size()[1], dim=1)
         col_interp = interp(t_flat, x, col)
-        reconstructed += col_interp.view(output_size, output_size)
+        reconstructed += col_interp.view(radon_image.size()[0], radon_image.size()[1], output_size, output_size)
 
     if circle:
         out_reconstruction_circle = (xpr**2 + ypr**2) > radius**2

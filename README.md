@@ -1,10 +1,9 @@
 # torchskradon
 
-(WORK IN PROGRESS) A simple and easy to use PyTorch implementation of the Radon transform and the filtered back projection.
+(WORK IN PROGRESS) A differentiable PyTorch implementation of the forward and inverse Radon transform.
 
 ## About
-This package mimics the implementation of [`radon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.radon) and [`iradon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon) from scikit-image. 
-It supports batched, multi-channel 2D tensors as input to the Radon and inverse Radon transforms.
+`torchskradon` mimics the implementation of [`radon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.radon) and [`iradon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon) from [`scikit-image`](https://scikit-image.org). All transforms work with batched multi-channel data and are fully differentiable. This allows backpropagation through `torchskradon` functions to train neural networks or solve simple optimization tasks (see [examples](#examples)).
 
 ## Basic Usage
 ```python
@@ -24,6 +23,14 @@ theta = torch.linspace(0.0, 180.0, max(image.size()[2:])+1)[:-1].to(device)
 sinogram = torchskradon(image, theta=theta)
 reconstruction_fbp = torchskiradon(sinogram, theta=theta, filter_name='ramp')
 ```
+
+## Examples
+For more detailed examples and use cases, see the `examples/` directory:
+
+- [`examples/basic_usage.py`](examples/basic_usage.py) - Basic forward and inverse Radon transforms
+- [`examples/model_example.py`](examples/model_example.py) - Model-based image reconstruction
+- [`examples/torchskiradon_model.py`](examples/torchskiradon_model.py) - Model-based sinogram reconstruction
+
 ## Performance 
 ![Example Reconstruction (Shepp-Logan)](misc/benchmark_torchskradon.png)
 ## Acknowledgements

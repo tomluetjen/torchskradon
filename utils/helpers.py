@@ -15,7 +15,7 @@ def convert_to_float(image, preserve_range):
             if image.dtype == torch.bool:
                 # Boolean: False -> 0.0, True -> 1.0
                 image = image.double()
-            elif image.dtype in [torch.uint8, torch.uint16, torch.uint32, torch.uint64]:
+            elif image.dtype in [torch.uint8]:
                 # Unsigned integers -> [0.0, 1.0]
                 imax_in = torch.iinfo(image.dtype).max
                 image = image / imax_in
