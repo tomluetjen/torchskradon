@@ -4,14 +4,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 from skimage.data import shepp_logan_phantom
 from skimage.transform import rescale
-from functional import torchskradon, torchskiradon
+from functional import skradon, skiradon
 import matplotlib.pyplot as plt
 
 #https://scikit-image.org/docs/stable/auto_examples/transform/plot_radon_transform.html
 
-device = 'cpu'
-if torch.cuda.is_available():
-    device = 'cuda'
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 image = shepp_logan_phantom()
 image = rescale(image, scale=0.4, mode='reflect', channel_axis=None)
@@ -23,7 +21,7 @@ ax1.imshow(image, cmap=plt.cm.Greys_r)
 
 image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).to(device)
 theta = torch.linspace(0.0, 180.0, max(image.size()[2:])+1)[:-1].to(device)
-sinogram = torchskradon(image, theta=theta)
+sinogram = skradon(image, theta=theta)
 dx, dy = 0.5 * 180.0 / max(image.shape), 0.5 / sinogram.shape[0]
 ax2.set_title("Radon transform\n(Sinogram)")
 ax2.set_xlabel("Projection angle (deg)")
@@ -37,7 +35,7 @@ ax2.imshow(
 
 fig.tight_layout()
 plt.show()
-reconstruction_fbp = torchskiradon(sinogram, theta=theta, filter_name='ramp')
+reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name='ramp')
 error = reconstruction_fbp - image
 print(f'FBP rms reconstruction error: {torch.sqrt(torch.mean(error**2)).item():.3g}')
 

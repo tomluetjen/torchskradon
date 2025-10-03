@@ -7,7 +7,7 @@ import torch
 import numpy as np
 from skimage.data import shepp_logan_phantom
 from skimage.transform import radon, rescale, iradon
-from functional import torchskradon, torchskiradon
+from functional import skradon, skiradon
 import matplotlib.pyplot as plt
 
 image = shepp_logan_phantom()
@@ -22,20 +22,20 @@ for i, batch_size in enumerate(batches):
     input_data = torch.repeat_interleave(input_data, batch_size, dim=0)
     input_data = torch.repeat_interleave(input_data, 1, dim=1)
     for device in devices:
-        print(f"Benchmarking torchsk(i)radon on {device} for batch size: {batch_size}")
-        # Measure performance of Radon transform
+        print(f"Benchmarking skradon on {device} with batch size: {batch_size}")
+        # Measure performance of skradon
         input_data = input_data.to(device)
         start_time = time.time()
-        sinogram_torch = torchskradon(input_data)
+        sinogram_torch = skradon(input_data)
         end_time = time.time()
         if device == 'cpu':
             benchmarks_torch[i, 0, 0] = end_time - start_time
         elif device == 'cuda':
             benchmarks_torch[i, 0, 1] = end_time - start_time
-
-        # Measure performance of IRadon transform
+        print(f"Benchmarking skiradon on {device} with batch size: {batch_size}")
+        # Measure performance of skiradon
         start_time = time.time()
-        reconstruction_torch = torchskiradon(sinogram_torch)
+        reconstruction_torch = skiradon(sinogram_torch)
         end_time = time.time()
         if device == 'cpu':
             benchmarks_torch[i, 1, 0] = end_time - start_time
@@ -45,18 +45,18 @@ for i, batch_size in enumerate(batches):
 
 benchmarks_skimage = np.zeros((len(batches), 2))
 for i,batch_size in enumerate(batches):
-    print(f"Benchmarking (i)radon for batch size: {batch_size} for skimage")
+    print(f"Benchmarking (i)radon on cpu with batch size: {batch_size}")
     input_data = np.expand_dims(image, axis=(0,1))
     input_data = np.repeat(input_data, batch_size, 0)
     input_data = np.repeat(input_data, 1, 1)
     start_time = time.time()
     for batch in range(batch_size):
         for channel in range(input_data.shape[1]):
-            # Measure performance of radon transform
+            # Measure performance of radon
             sinogram_torch = radon(input_data[batch, channel])
             end_time_radon = time.time()
 
-            # Measure performance of iradon transform
+            # Measure performance of iradon
             reconstruction_torch = iradon(sinogram_torch)
             end_time_iradon = time.time()
     benchmarks_skimage[i, 0] = end_time_radon - start_time
@@ -69,14 +69,14 @@ axs[0].set_xlabel("Batch Size")
 axs[0].set_ylabel("Time (s)")
 axs[0].plot(batches, benchmarks_torch[:, 0, 0], label='torchskradon CPU', marker='o')
 axs[0].plot(batches, benchmarks_torch[:, 0, 1], label='torchskradon GPU', marker='o')
-axs[0].plot(batches, benchmarks_skimage[:, 0], label='skimage CPU', marker='o')
+axs[0].plot(batches, benchmarks_skimage[:, 0], label='scikit-image CPU', marker='o')
 axs[0].set_yscale('log')
 
 axs[1].set_title("Inverse Radon Transform")
 axs[1].set_xlabel("Batch Size")
 axs[1].plot(batches, benchmarks_torch[:, 1, 0], label='torchskradon CPU', marker='o')
 axs[1].plot(batches, benchmarks_torch[:, 1, 1], label='torchskradon GPU', marker='o')
-axs[1].plot(batches, benchmarks_skimage[:, 1], label='skimage CPU', marker='o')
+axs[1].plot(batches, benchmarks_skimage[:, 1], label='scikit-image CPU', marker='o')
 axs[1].set_yscale('log')
 axs[1].legend(loc='center left', bbox_to_anchor=(1.02, 0.5), frameon=False)
 plt.tight_layout()

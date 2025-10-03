@@ -10,26 +10,27 @@
 import torch
 from skimage.data import shepp_logan_phantom
 from skimage.transform import rescale
-from functional import torchskradon, torchskiradon
+from functional import skradon, skiradon
 
-device = 'cpu'
-if torch.cuda.is_available():
-    device = 'cuda'
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 image = shepp_logan_phantom()
 image = rescale(image, scale=0.4, mode='reflect', channel_axis=None)
 image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).to(device)
 theta = torch.linspace(0.0, 180.0, max(image.size()[2:])+1)[:-1].to(device)
-sinogram = torchskradon(image, theta=theta)
-reconstruction_fbp = torchskiradon(sinogram, theta=theta, filter_name='ramp')
+sinogram = skradon(image, theta=theta)
+reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name='ramp')
 ```
 
 ## Examples
 For more detailed examples and use cases, see the `examples/` directory:
 
 - [`examples/basic_usage.py`](examples/basic_usage.py) - Basic forward and inverse Radon transforms
-- [`examples/model_example.py`](examples/model_example.py) - Model-based image reconstruction
+- [`examples/torchskradon_model.py`](examples/torchskradon_model.py) - Model-based image reconstruction
 - [`examples/torchskiradon_model.py`](examples/torchskiradon_model.py) - Model-based sinogram reconstruction
+
+## Accuracy
+The mean squared error between the transforms in `torchskradon` and their respective [`scikit-image`](https://scikit-image.org) counterparts is typically less than 0.0001% of the maximum of scikit-image's output array.
 
 ## Performance 
 ![Example Reconstruction (Shepp-Logan)](misc/benchmark_torchskradon.png)

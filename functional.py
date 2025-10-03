@@ -4,7 +4,7 @@ from utils.helpers import warp, interp, sinogram_circle_to_square, get_fourier_f
 from warnings import warn
 
 
-def torchskradon(image, theta=None, circle=True, preserve_range=False):
+def skradon(image, theta=None, circle=True, preserve_range=False):
     if image.ndim != 4:
         raise ValueError('The input image must be 4-D')
     if theta is None:
@@ -67,7 +67,7 @@ def torchskradon(image, theta=None, circle=True, preserve_range=False):
     return radon_image
 
 
-def torchskiradon(radon_image, theta=None, output_size=None, filter_name="ramp", interpolation="linear", circle=True, preserve_range=False):
+def skiradon(radon_image, theta=None, output_size=None, filter_name="ramp", interpolation="linear", circle=True, preserve_range=False):
     if radon_image.ndim != 4:
         raise ValueError('The input image must be 4-D')
 
@@ -75,7 +75,7 @@ def torchskiradon(radon_image, theta=None, output_size=None, filter_name="ramp",
     dtype = radon_image.dtype
 
     if theta is None:
-        theta = torch.linspace(0, 180, radon_image.size()[3], dtype=dtype, device=device)
+        theta = torch.linspace(0, 180, radon_image.size()[3]+1, dtype=dtype, device=device)[:-1]
     else:
         theta = theta.detach().clone()
 
