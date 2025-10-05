@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torchskradon"
+version = "0.1.0"
+description = "A differentiable implementation of scikit-image's Radon transform and filtered backprojection in PyTorch"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Tom Lütjen", email = "tom.luetjen@icloud.com" }]
+keywords = ["pytorch", "skimage", "radon", "tomography"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = ["torch>=2.2"]
+
+[project.optional-dependencies]
+tests = [
+  "scikit-image>=0.22",
+  "matplotlib>=3.8",
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+]
+benchmarks = [
+  "numpy>=1.26",
+  "scikit-image>=0.22",
+  "matplotlib>=3.8",
+  "pytest-benchmark>=4.0",
+]
+dev = [
+  "ruff>=0.6.9",
+  "pytest>=8.2",
+  "pytest-cov>=5.0",
+  "pytest-benchmark>=4.0",
+  "numpy>=1.26",
+  "scikit-image>=0.22",
+  "matplotlib>=3.8",
+]
+
+[project.urls]
+Repository = "https://github.com/tomluetjen/torchskradon.git"
+Issues = "https://github.com/tomluetjen/torchskradon/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["torchskradon*"]
+exclude = ["tests*", "examples*", "benchmarks*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["torchskradon"]
+
+[tool.pytest.ini_options]
+python_files = ["test_*.py", "benchmark_*.py"]
+python_functions = ["test_*", "benchmark_*"]
+testpaths = ["tests", "benchmarks"]
