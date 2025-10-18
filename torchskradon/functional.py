@@ -112,7 +112,7 @@ def skiradon(
     filter_name="ramp",
     interpolation="linear",
     circle=True,
-    preserve_range=False,
+    preserve_range=True,
 ):
     if radon_image.ndim != 4:
         raise ValueError("The input image must be 4-D")

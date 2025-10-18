@@ -9,9 +9,7 @@ from skimage.transform import iradon, radon, rescale
 from torchskradon.functional import skiradon, skradon
 from torchskradon.helpers import convert_to_float
 
-device = "cpu"
-if torch.cuda.is_available():
-    device = "cuda"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 PHANTOM = shepp_logan_phantom()[::2, ::2]
 PHANTOM = rescale(PHANTOM, 0.5, order=1, mode="constant", anti_aliasing=False, channel_axis=None)
@@ -62,13 +60,7 @@ def _generate_random_image(shape, dtype):
             device=device,
         )
     else:
-        # Signed integers: use safe range to avoid overflow
-        if dtype == torch.int8:
-            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
-        elif dtype == torch.int16:
-            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
-        else:  # int32, int64
-            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
+        image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
     shape_min = min(shape[2:])
     radius = shape_min // 2
     x, y = torch.meshgrid(
@@ -82,6 +74,71 @@ def _generate_random_image(shape, dtype):
     outside_reconstruction_circle = dist > radius**2
     image[:, :, outside_reconstruction_circle] = 0
     return image
+
+
+def check_skradon_autograd(circle, preserve_range):
+    torch.manual_seed(98312871)
+    shape = (1, 1, 1, 1)
+    image = _generate_random_image(shape, torch.float64).requires_grad_(True)
+    theta = torch.linspace(0, 180, 2)[:-1].to(device)
+    sinogram = skradon(image, theta=theta, circle=circle, preserve_range=preserve_range)
+    loss = (torch.abs(sinogram) ** 2 / 2).sum()
+    loss.backward()
+    image_grad = image.grad.clone()
+
+    # The non-filtered skiradon does implement the exact adjoint
+    # However, we scale the backpropjection to approximately match the adjoint of the sinogram
+    backprojection = (
+        skiradon(
+            sinogram, theta=theta, filter_name=None, circle=circle, preserve_range=preserve_range
+        )
+        / torch.pi
+        * (2 * len(theta))
+    )
+    # This is just a sanity check; we do not expect this to be true for larger images
+    assert torch.allclose(image_grad, backprojection)
+
+
+@pytest.mark.parametrize("circle", [False, True])
+@pytest.mark.parametrize("preserve_range", [False, True])
+def test_skradon_autograd(circle, preserve_range):
+    check_skradon_autograd(circle, preserve_range)
+
+
+def check_skiradon_autograd(circle, preserve_range):
+    torch.manual_seed(98312871)
+    shape = (1, 1, 1, 1)
+    image = _generate_random_image(shape, torch.float64)
+    theta = torch.linspace(0, 180, 2)[:-1].to(device)
+    sinogram = skradon(
+        image, theta=theta, circle=circle, preserve_range=preserve_range
+    ).requires_grad_(True)
+
+    # The non-filtered skiradon does implement the exact adjoint
+    # However, we scale the backpropjection to approximately match the adjoint of the sinogram
+    backprojection = (
+        skiradon(
+            sinogram, theta=theta, filter_name=None, circle=circle, preserve_range=preserve_range
+        )
+        / torch.pi
+        * (2 * len(theta))
+    )
+
+    loss = (torch.abs(backprojection) ** 2 / 2).sum()
+    loss.backward()
+    sinogram_grad = sinogram.grad.clone()
+
+    sinogram_reco = skradon(
+        backprojection, theta=theta, circle=circle, preserve_range=preserve_range
+    )
+    # This is just a sanity check; we do not expect this to be true for larger images
+    assert torch.allclose(sinogram_grad, sinogram_reco)
+
+
+@pytest.mark.parametrize("circle", [False, True])
+@pytest.mark.parametrize("preserve_range", [False, True])
+def test_skiradon_autograd(circle, preserve_range):
+    check_skiradon_autograd(circle, preserve_range)
 
 
 def check_skradon_vs_radon(shape, theta, circle, dtype, preserve_range):
@@ -104,9 +161,7 @@ def check_skradon_vs_radon(shape, theta, circle, dtype, preserve_range):
             )
     sinogram_sk = torch.from_numpy(sinogram_sk).unsqueeze(0).unsqueeze(0).to(device)
     # Compare the two sinograms
-    assert ((sinogram - sinogram_sk) ** 2).mean() < 1e-4 * torch.max(
-        torch.abs(sinogram_sk)
-    )  # MSE less than 0.0001% of max value
+    assert torch.allclose(sinogram, sinogram_sk, rtol=1e-3, atol=1e-3)
     assert sinogram.dtype == sinogram_sk.dtype
 
 
@@ -182,9 +237,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
         filter_name=filter_name,
         preserve_range=preserve_range,
     )
-    assert ((reco - reco_sk) ** 2).mean() < 1e-4 * torch.max(
-        torch.abs(reco_sk)
-    )  # MSE less than 0.01% of max value
+    assert torch.allclose(reco, reco_sk, rtol=1e-3, atol=1e-3)
     assert reco.dtype == reco_sk.dtype
 
 
@@ -382,7 +435,6 @@ def test_iradon_angles():
     radon_image_80 = skradon(image, theta=theta, circle=False)
     # Test whether the sum of all projections is approximately the same
     s = radon_image_80.sum(axis=2)
-    print(s.size())
     assert torch.allclose(s[0, 0], s[0, 0, 2], rtol=0.01)
     reconstructed = skiradon(radon_image_80, circle=False)
     delta_80 = torch.mean(abs(image / torch.max(image) - reconstructed / torch.max(reconstructed)))
@@ -536,8 +588,6 @@ def check_radon_iradon_circle(interpolation, shape, output_size):
     c0, c1 = torch.meshgrid(torch.arange(0, width), torch.arange(0, width), indexing="ij")
     r = torch.sqrt((c0 - width // 2) ** 2 + (c1 - width // 2) ** 2)
     reconstruction_rectangle[0, 0, r > radius] = 0.0
-    print(reconstruction_circle.shape)
-    print(reconstruction_rectangle.shape)
     torch.allclose(reconstruction_rectangle, reconstruction_circle)
 
 

@@ -99,7 +99,7 @@ def interp(
     extrapolate: str = "constant",
 ) -> torch.Tensor:
     """One-dimensional linear interpolation between monotonically increasing sample
-    points, with extrapolation beyond sample points; by Moritz Lange (https://github.com/pytorch/pytorch/issues/50334).
+    points, with extrapolation beyond sample points; by MoritzLange (https://github.com/pytorch/pytorch/issues/50334).
     Modified to to constant zero extrapolation.
 
     Returns the one-dimensional piecewise linear interpolant to a function with

@@ -33,8 +33,24 @@ For more detailed examples and use cases, see the `examples` directory:
 - [`examples/torchskiradon_model.py`](examples/torchskiradon_model.py) - Model-based sinogram reconstruction
 
 ## Accuracy
-The mean squared error between the transforms in `torchskradon` and their respective [`scikit-image`](https://scikit-image.org) counterparts is typically less than 0.01% of the maximum of scikit-image's output array.
+````console
+----------------------- Absolute Error of Inverse Radon Transform on MNIST test dataset: 2 tests -----------------------
+Name                             Min           Max          Mean        StdDev        Median           IQR      Outliers
+------------------------------------------------------------------------------------------------------------------------
+torchskradon (CPU)        0.0000e+00    2.0862e-06    3.1433e-07    2.1123e-07    2.5891e-07    2.5879e-07 2117701;247180
+torchskradon (GPU)        0.0000e+00    1.9670e-06    1.3048e-07    1.0576e-07    1.0803e-07    1.1735e-07 1800730;379622
+------------------------------------------------------------------------------------------------------------------------
 
+--------------------------- Absolute Error of Radon Transform on MNIST test dataset: 2 tests ---------------------------
+Name                             Min           Max          Mean        StdDev        Median           IQR      Outliers
+------------------------------------------------------------------------------------------------------------------------
+torchskradon (CPU)        0.0000e+00    6.2466e-05    1.0514e-06    1.9718e-06    0.0000e+00    1.4305e-06 7713886;6355122
+torchskradon (GPU)        0.0000e+00    6.1989e-05    1.0435e-06    1.9558e-06    0.0000e+00    1.4305e-06 7633118;6271687
+------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+````
 ## Performance 
 ````console
 --------------------------------------------------------- benchmark 'Inverse Radon Transform on MNIST test dataset': 3 tests ---------------------------------------------------------
