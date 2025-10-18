@@ -1,6 +1,6 @@
 # torchskradon
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-build.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-build.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
 
 
 (WORK IN PROGRESS) A differentiable PyTorch implementation of the forward and inverse Radon transform.
