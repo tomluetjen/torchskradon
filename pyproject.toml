@@ -26,17 +26,12 @@ dependencies = ["torch>=2.2"]
 
 [project.optional-dependencies]
 tests = [
+  "torchvision>=0.17",
   "scikit-image>=0.22",
   "matplotlib>=3.8",
   "pytest>=8.2",
-  "pytest-cov>=5.0",
-]
-benchmarks = [
-  "torchvision>=0.17",
-  "numpy>=1.26",
-  "scikit-image>=0.22",
-  "matplotlib>=3.8",
   "pytest-benchmark>=4.0",
+  "pytest-cov>=5.0",
 ]
 dev = [
   "torchvision>=0.17",

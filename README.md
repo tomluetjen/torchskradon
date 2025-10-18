@@ -6,7 +6,7 @@
 (WORK IN PROGRESS) A differentiable PyTorch implementation of the forward and inverse Radon transform.
 
 ## About
-`torchskradon` mimics the implementation of [`radon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.radon) and [`iradon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon) from [`scikit-image`](https://scikit-image.org). All transforms work with batched multi-channel data and are fully differentiable. This allows backpropagation through `torchskradon` functions to train neural networks or solve simple optimization tasks (see [examples](#examples)).
+`torchskradon` mimics the implementation of [`radon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.radon) and [`iradon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon) from [`scikit-image`](https://scikit-image.org). All transforms work with batched multi-channel data and are fully differentiable. This allows backpropagation through `torchskradon` functions to train neural networks or solve optimization problems with [`torch.optim`](https://docs.pytorch.org/docs/stable/optim.html) (see [examples](#examples)).
 
 ## Basic Usage
 ```python
