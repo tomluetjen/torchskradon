@@ -1,5 +1,8 @@
 # torchskradon
 
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-build.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-build.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
+
+
 (WORK IN PROGRESS) A differentiable PyTorch implementation of the forward and inverse Radon transform.
 
 ## About
@@ -23,32 +26,32 @@ reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name='ramp')
 ```
 
 ## Examples
-For more detailed examples and use cases, see the `examples/` directory:
+For more detailed examples and use cases, see the `examples` directory:
 
-- [`examples/basic_usage.py`](examples/basic_usage.py) - Basic forward and inverse Radon transforms
+- [`examples/plot_radon_transform.py`](examples/plot_radon_transform.py) - Basic forward and inverse Radon transforms
 - [`examples/torchskradon_model.py`](examples/torchskradon_model.py) - Model-based image reconstruction
 - [`examples/torchskiradon_model.py`](examples/torchskiradon_model.py) - Model-based sinogram reconstruction
 
 ## Accuracy
-The mean squared error between the transforms in `torchskradon` and their respective [`scikit-image`](https://scikit-image.org) counterparts is typically less than 0.0001% of the maximum of scikit-image's output array.
+The mean squared error between the transforms in `torchskradon` and their respective [`scikit-image`](https://scikit-image.org) counterparts is typically less than 0.01% of the maximum of scikit-image's output array.
 
 ## Performance 
 ````console
--------------------------------------------------------- benchmark 'Inverse Radon Transform with Batch Size 128': 3 tests --------------------------------------------------------
-Name (time in s)          Min               Max              Mean            StdDev            Median               IQR            Outliers      OPS            Rounds  Iterations
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-skimage (CPU)          1.0410 (27.56)    1.0545 (12.56)    1.0481 (16.83)    0.0057 (1.0)      1.0498 (16.59)    0.0095 (8.68)          2;0   0.9541 (0.06)          5           1
-torchskradon (CPU)     0.6675 (17.67)    0.7644 (9.11)     0.7237 (11.62)    0.0359 (6.36)     0.7334 (11.59)    0.0410 (37.42)         2;0   1.3818 (0.09)          5           1
-torchskradon (GPU)     0.0378 (1.0)      0.0839 (1.0)      0.0623 (1.0)      0.0114 (2.02)     0.0633 (1.0)      0.0011 (1.0)           4;5  16.0578 (1.0)          16           1
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------- benchmark 'Inverse Radon Transform on MNIST test dataset': 3 tests ---------------------------------------------------------
+Name (time in s)           Min                Max               Mean            StdDev             Median               IQR            Outliers      OPS            Rounds  Iterations
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+skimage (CPU)          18.7919 (206.14)   18.8811 (167.55)   18.8254 (197.13)   0.0346 (4.10)     18.8162 (204.12)   0.0433 (39.79)         1;0   0.0531 (0.01)          5           1
+torchskradon (CPU)      5.0316 (55.20)     5.2680 (46.75)     5.1462 (53.89)    0.0983 (11.64)     5.1858 (56.26)    0.1541 (141.53)        2;0   0.1943 (0.02)          5           1
+torchskradon (GPU)      0.0912 (1.0)       0.1127 (1.0)       0.0955 (1.0)      0.0084 (1.0)       0.0922 (1.0)      0.0011 (1.0)           1;1  10.4715 (1.0)           6           1
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
------------------------------------------------------------- benchmark 'Radon Transform with Batch Size 128': 3 tests -----------------------------------------------------------
-Name (time in s)          Min               Max              Mean            StdDev            Median               IQR            Outliers     OPS            Rounds  Iterations
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-skimage (CPU)          2.0392 (8.92)     2.0689 (8.01)     2.0472 (8.35)     0.0122 (1.37)     2.0425 (8.33)     0.0080 (1.0)           1;1  0.4885 (0.12)          5           1
-torchskradon (CPU)     0.6258 (2.74)     0.6447 (2.49)     0.6351 (2.59)     0.0090 (1.0)      0.6368 (2.60)     0.0171 (2.13)          3;0  1.5746 (0.39)          5           1
-torchskradon (GPU)     0.2287 (1.0)      0.2584 (1.0)      0.2450 (1.0)      0.0107 (1.20)     0.2452 (1.0)      0.0110 (1.37)          2;0  4.0809 (1.0)           5           1
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------- benchmark 'Radon Transform on MNIST test dataset': 3 tests ------------------------------------------------------------
+Name (time in s)           Min                Max               Mean            StdDev             Median               IQR            Outliers     OPS            Rounds  Iterations
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+skimage (CPU)          39.3553 (72.82)    40.3932 (73.88)    39.6877 (73.08)    0.4297 (178.15)   39.4695 (72.65)    0.5418 (173.05)        1;0  0.0252 (0.01)          5           1
+torchskradon (CPU)     12.2509 (22.67)    12.3949 (22.67)    12.3444 (22.73)    0.0604 (25.03)    12.3783 (22.78)    0.0845 (27.00)         1;0  0.0810 (0.04)          5           1
+torchskradon (GPU)      0.5405 (1.0)       0.5467 (1.0)       0.5431 (1.0)      0.0024 (1.0)       0.5433 (1.0)      0.0031 (1.0)           2;0  1.8413 (1.0)           5           1
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Legend:
   Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.

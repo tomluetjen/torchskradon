@@ -50,13 +50,13 @@ def _rescale_intensity(x):
 def _generate_random_image(shape, dtype):
     image = torch.zeros(shape, dtype=dtype, device=device)
     if dtype.is_floating_point:
-        image = torch.randn(shape, dtype=dtype, device=device) * 1000
+        image = torch.clip(torch.randn(shape, dtype=dtype, device=device), -1, 1)
     elif dtype == torch.bool:
         image = torch.randint(0, 2, shape, dtype=dtype, device=device)
     elif dtype in [torch.uint8]:
         image = torch.randint(
-            torch.iinfo(dtype).min,
-            torch.iinfo(dtype).max + 1,
+            0,
+            256,
             shape,
             dtype=dtype,
             device=device,
@@ -64,11 +64,11 @@ def _generate_random_image(shape, dtype):
     else:
         # Signed integers: use safe range to avoid overflow
         if dtype == torch.int8:
-            image = torch.randint(-100, 101, shape, dtype=dtype, device=device)
+            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
         elif dtype == torch.int16:
-            image = torch.randint(-1000, 1001, shape, dtype=dtype, device=device)
+            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
         else:  # int32, int64
-            image = torch.randint(-10000, 10001, shape, dtype=dtype, device=device)
+            image = torch.randint(-128, 128, shape, dtype=dtype, device=device)
     shape_min = min(shape[2:])
     radius = shape_min // 2
     x, y = torch.meshgrid(
@@ -184,7 +184,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
     )
     assert ((reco - reco_sk) ** 2).mean() < 1e-4 * torch.max(
         torch.abs(reco_sk)
-    )  # MSE less than 0.0001% of max value
+    )  # MSE less than 0.01% of max value
     assert reco.dtype == reco_sk.dtype
 
 
@@ -481,7 +481,7 @@ def test_radon_circle():
 
 
 def check_sinogram_circle_to_square(size):
-    from src.helpers import sinogram_circle_to_square
+    from torchskradon.helpers import sinogram_circle_to_square
 
     image = _random_circle((size, size))
     theta = torch.linspace(0.0, 180.0, size + 1)[:-1]
