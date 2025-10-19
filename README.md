@@ -1,12 +1,15 @@
 # torchskradon
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![TestPyPI](https://img.shields.io/badge/dynamic/json?url=https://test.pypi.org/pypi/torchskradon/json&query=info.version&label=TestPyPI&color=orange&logo=pypi)](https://test.pypi.org/project/torchskradon/) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
 
-
-(WORK IN PROGRESS) A differentiable PyTorch implementation of the forward and inverse Radon transform.
 
 ## About
 `torchskradon` mimics the implementation of [`radon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.radon) and [`iradon`](https://scikit-image.org/docs/stable/api/skimage.transform.html#skimage.transform.iradon) from [`scikit-image`](https://scikit-image.org). All transforms work with batched multi-channel data and are fully differentiable. This allows backpropagation through `torchskradon` functions to train neural networks or solve optimization problems with [`torch.optim`](https://docs.pytorch.org/docs/stable/optim.html) (see [examples](#examples)).
+
+## Installation
+```console
+pip install -i https://test.pypi.org/simple/ torchskradon
+```
 
 ## Basic Usage
 ```python
@@ -29,8 +32,7 @@ reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name='ramp')
 For more detailed examples and use cases, see the `examples` directory:
 
 - [`examples/plot_radon_transform.py`](examples/plot_radon_transform.py) - Basic forward and inverse Radon transforms
-- [`examples/torchskradon_model.py`](examples/torchskradon_model.py) - Model-based image reconstruction
-- [`examples/torchskiradon_model.py`](examples/torchskiradon_model.py) - Model-based sinogram reconstruction
+- [`examples/ct_model.ipynb`](examples/ct_model.ipynb) - Model-based CT reconstruction
 
 ## Accuracy
 ````console

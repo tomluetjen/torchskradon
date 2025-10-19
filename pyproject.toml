@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "torchskradon"
-version = "0.1.0"
+version = "0.1.1"
 description = "A differentiable implementation of scikit-image's Radon transform and filtered backprojection in PyTorch"
 readme = "README.md"
 requires-python = ">=3.10"
