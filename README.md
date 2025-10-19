@@ -1,6 +1,6 @@
 # torchskradon
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![TestPyPI](https://img.shields.io/badge/dynamic/json?url=https://test.pypi.org/pypi/torchskradon/json&query=info.version&label=TestPyPI&color=orange&logo=pypi)](https://test.pypi.org/project/torchskradon/) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![PyPI](https://img.shields.io/pypi/v/torchskradon.svg?label=PyPI&logo=pypi)](https://pypi.org/project/torchskradon/) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
 
 
 ## About
@@ -8,7 +8,7 @@
 
 ## Installation
 ```console
-pip install -i https://test.pypi.org/simple/ torchskradon
+pip install torchskradon
 ```
 
 ## Basic Usage
@@ -79,7 +79,12 @@ You can run benchmarks yourself by running:
 ```console
   python -m pytest --benchmark-only --benchmark-sort="name"
 ```
+## Other Packages
+For users interested in more flexible implementations of projection transforms check out:
 
+1. [`ASTRA Toolbox`](https://github.com/astra-toolbox/astra-toolbox)
+
+2. [`torch-radon`](https://github.com/matteo-ronchetti/torch-radon)
 ## Acknowledgements
 This package is inspired by implementations of the Radon transform and its' inverse in [`skimage.transform`](https://github.com/scikit-image/scikit-image/tree/main/src/skimage/transform), which are based on [1-3].
 

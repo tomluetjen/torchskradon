@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "torchskradon"
-version = "0.1.2"
+version = "0.1.0"
 description = "A differentiable implementation of scikit-image's Radon transform and filtered backprojection in PyTorch"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,7 +12,7 @@ license = { text = "MIT" }
 authors = [{ name = "Tom Lütjen", email = "tom.luetjen@icloud.com" }]
 keywords = ["pytorch", "skimage", "radon", "tomography"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3 :: Only",

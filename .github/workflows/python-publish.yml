@@ -1,9 +1,9 @@
-name: Publish to TestPyPI
+name: Publish to PyPI
 
 on:
-  push:
-    branches:
-      - main
+  release:
+    types: [published]   
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,7 +12,8 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    environment: testpypi
+    environment:
+      name: "pypi" 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -28,8 +29,6 @@ jobs:
 
       - name: Build package
         run: python -m build
-        
-      - name: Publish to TestPyPI (OIDC)
+
+      - name: Publish to PyPI (OIDC)
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
