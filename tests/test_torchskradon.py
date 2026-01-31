@@ -19,7 +19,7 @@ PHANTOM = torch.from_numpy(PHANTOM).unsqueeze(0).unsqueeze(0).to(device)
 def _debug_plot(original, result, sinogram=None):
     from matplotlib import pyplot as plt
 
-    imkwargs = dict(cmap="gray", interpolation="auto")
+    imkwargs = dict(cmap="gray", interpolation="nearest")
     if sinogram is None:
         plt.figure(figsize=(15, 6))
         sp = 130
@@ -78,25 +78,12 @@ def _generate_random_image(shape, dtype):
 
 def check_skradon_autograd(circle, preserve_range):
     torch.manual_seed(98312871)
-    shape = (1, 1, 1, 1)
+    shape = (2, 3, 4, 5)
     image = _generate_random_image(shape, torch.float64).requires_grad_(True)
-    theta = torch.linspace(0, 180, 2)[:-1].to(device)
-    sinogram = skradon(image, theta=theta, circle=circle, preserve_range=preserve_range)
-    loss = (torch.abs(sinogram) ** 2 / 2).sum()
-    loss.backward()
-    image_grad = image.grad.clone()
-
-    # The non-filtered skiradon does implement the exact adjoint
-    # However, we scale the backpropjection to approximately match the adjoint of the sinogram
-    backprojection = (
-        skiradon(
-            sinogram, theta=theta, filter_name=None, circle=circle, preserve_range=preserve_range
-        )
-        / torch.pi
-        * (2 * len(theta))
+    theta = torch.linspace(0, 180, 180)[:-1].to(device).requires_grad_(True)
+    assert torch.autograd.gradcheck(
+        skradon, (image, theta, circle, preserve_range), nondet_tol=1e-8, fast_mode=True
     )
-    # This is just a sanity check; we do not expect this to be true for larger images
-    assert torch.allclose(image_grad, backprojection)
 
 
 @pytest.mark.parametrize("circle", [False, True])
@@ -107,32 +94,18 @@ def test_skradon_autograd(circle, preserve_range):
 
 def check_skiradon_autograd(circle, preserve_range):
     torch.manual_seed(98312871)
-    shape = (1, 1, 1, 1)
+    shape = (2, 3, 4, 5)
     image = _generate_random_image(shape, torch.float64)
-    theta = torch.linspace(0, 180, 2)[:-1].to(device)
+    theta = torch.linspace(0, 180, 180)[:-1].to(device).requires_grad_(True)
     sinogram = skradon(
         image, theta=theta, circle=circle, preserve_range=preserve_range
     ).requires_grad_(True)
-
-    # The non-filtered skiradon does implement the exact adjoint
-    # However, we scale the backpropjection to approximately match the adjoint of the sinogram
-    backprojection = (
-        skiradon(
-            sinogram, theta=theta, filter_name=None, circle=circle, preserve_range=preserve_range
-        )
-        / torch.pi
-        * (2 * len(theta))
+    assert torch.autograd.gradcheck(
+        skiradon,
+        (sinogram, theta, None, "ramp", "linear", circle, preserve_range),
+        nondet_tol=1e-8,
+        fast_mode=True,
     )
-
-    loss = (torch.abs(backprojection) ** 2 / 2).sum()
-    loss.backward()
-    sinogram_grad = sinogram.grad.clone()
-
-    sinogram_reco = skradon(
-        backprojection, theta=theta, circle=circle, preserve_range=preserve_range
-    )
-    # This is just a sanity check; we do not expect this to be true for larger images
-    assert torch.allclose(sinogram_grad, sinogram_reco)
 
 
 @pytest.mark.parametrize("circle", [False, True])
@@ -187,7 +160,9 @@ def test_skradon_vs_radon(shape, theta, circle, dtype, preserve_range):
     check_skradon_vs_radon(shape, theta, circle, dtype, preserve_range)
 
 
-def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_range):
+def check_skiradon_vs_iradon(
+    shape, theta, circle, interpolation, dtype, filter_name, preserve_range
+):
     torch.manual_seed(98312871)
     image = _generate_random_image(shape, dtype)
     image_sk = image.detach().cpu().numpy()
@@ -202,6 +177,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
             theta=theta_sk,
             circle=circle,
             filter_name=filter_name,
+            interpolation=interpolation,
             preserve_range=preserve_range,
         )
     ).dtype
@@ -210,6 +186,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
         theta=theta,
         circle=circle,
         filter_name=filter_name,
+        interpolation=interpolation,
         preserve_range=preserve_range,
     )
     sinogram_sk = torch.zeros_like(sinogram).detach().cpu().numpy()
@@ -227,6 +204,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
                 theta=theta_sk,
                 circle=circle,
                 filter_name=filter_name,
+                interpolation=interpolation,
                 preserve_range=preserve_range,
             )
     reco_sk = torch.from_numpy(reco_sk).to(device)
@@ -235,6 +213,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
         theta=theta,
         circle=circle,
         filter_name=filter_name,
+        interpolation=interpolation,
         preserve_range=preserve_range,
     )
     assert torch.allclose(reco, reco_sk, rtol=1e-3, atol=1e-3)
@@ -244,6 +223,7 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
 @pytest.mark.parametrize("shape", [(2, 3, 5, 8), (8, 5, 13, 13), (1, 1, 34, 21)])
 @pytest.mark.parametrize("theta", [None, torch.linspace(0, 45, 90), torch.linspace(0, 180, 1)])
 @pytest.mark.parametrize("circle", [False, True])
+@pytest.mark.parametrize("interpolation", ["linear"])
 @pytest.mark.parametrize(
     "dtype",
     [
@@ -260,8 +240,12 @@ def check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_
 )
 @pytest.mark.parametrize("filter_name", ["ramp", "shepp-logan", "cosine", "hamming", "hann", None])
 @pytest.mark.parametrize("preserve_range", [False, True])
-def test_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_range):
-    check_skiradon_vs_iradon(shape, theta, circle, dtype, filter_name, preserve_range)
+def test_skiradon_vs_iradon(
+    shape, theta, circle, interpolation, dtype, filter_name, preserve_range
+):
+    check_skiradon_vs_iradon(
+        shape, theta, circle, interpolation, dtype, filter_name, preserve_range
+    )
 
 
 def test_iradon_bias_circular_phantom():
@@ -342,7 +326,7 @@ def check_iradon_center(size, theta, circle):
     if debug and has_mpl:
         import matplotlib.pyplot as plt
 
-        imkwargs = dict(cmap="gray", interpolation="auto")
+        imkwargs = dict(cmap="gray", interpolation="nearest")
         plt.figure()
         plt.subplot(221)
         plt.imshow(sinogram[0, 0].detach().cpu().numpy(), **imkwargs)
@@ -404,7 +388,7 @@ def check_radon_iradon(interpolation_type, filter_type):
 
 
 filter_types = ["ramp", "shepp-logan", "cosine", "hamming", "hann"]
-interpolation_types = ["linear"]
+interpolation_types = ["linear", "nearest"]
 radon_iradon_itorchuts = list(itertools.product(interpolation_types, filter_types))
 
 
@@ -591,9 +575,8 @@ def check_radon_iradon_circle(interpolation, shape, output_size):
     torch.allclose(reconstruction_rectangle, reconstruction_circle)
 
 
-# if adding more shapes to test data, you might want to look at commit d0f2bac3f
 shapes_radon_iradon_circle = ((61, 79),)
-interpolations = "linear"
+interpolations = ("linear", "nearest")
 output_sizes = (
     None,
     min(shapes_radon_iradon_circle[0]),

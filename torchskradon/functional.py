@@ -13,12 +13,14 @@ from torchskradon.helpers import (
 
 
 def skradon(image, theta=None, circle=True, preserve_range=False):
+    image = convert_to_float(image, preserve_range)
+
     if image.ndim != 4:
         raise ValueError("The input image must be 4-D")
     if theta is None:
         theta = torch.arange(180, dtype=torch.float32)
-
-    image = convert_to_float(image, preserve_range)
+    else:
+        theta = theta.detach().clone().to(device=image.device, dtype=image.dtype)
 
     if circle:
         shape_min = min(image.size()[2:])
@@ -118,12 +120,13 @@ def skiradon(
         raise ValueError("The input image must be 4-D")
 
     device = radon_image.device
+    radon_image = convert_to_float(radon_image, preserve_range)
     dtype = radon_image.dtype
 
     if theta is None:
         theta = torch.linspace(0, 180, radon_image.size()[3] + 1, dtype=dtype, device=device)[:-1]
     else:
-        theta = theta.detach().clone()
+        theta = theta.detach().clone().to(device=device, dtype=dtype)
 
     angles_count = len(theta)
     if angles_count != radon_image.size()[3]:
@@ -131,16 +134,13 @@ def skiradon(
             "The given ``theta`` does not match the number of projections in ``radon_image``."
         )
 
-    interpolation_types = "linear"
+    interpolation_types = ("linear", "nearest", "cubic")
     if interpolation not in interpolation_types:
         raise ValueError(f"Unknown interpolation: {interpolation}")
 
     filter_types = ("ramp", "shepp-logan", "cosine", "hamming", "hann", None)
     if filter_name not in filter_types:
         raise ValueError(f"Unknown filter: {filter_name}")
-
-    radon_image = convert_to_float(radon_image, preserve_range)
-    dtype = radon_image.dtype
 
     img_shape = radon_image.size()[2]
     if output_size is None:
@@ -172,17 +172,14 @@ def skiradon(
         torch.arange(output_size, device=device) - radius,
         indexing="ij",
     )
-    x = torch.arange(img_shape, device=device) - img_shape // 2
-    x = x.unsqueeze(0).unsqueeze(0)
-    x = torch.repeat_interleave(x, radon_image.size()[0], dim=0)
-    x = torch.repeat_interleave(x, radon_image.size()[1], dim=1)
+
     for i, angle in enumerate(torch.deg2rad(theta)):
         col = radon_filtered[:, :, :, i]
         t = ypr * torch.cos(angle) - xpr * torch.sin(angle)
         t_flat = t.flatten().unsqueeze(0).unsqueeze(0)
         t_flat = torch.repeat_interleave(t_flat, radon_image.size()[0], dim=0)
-        t_flat = torch.repeat_interleave(t_flat, radon_image.size()[1], dim=1)
-        col_interp = interp(t_flat, x, col)
+        # We do not need to define sampling points (always cartesian)
+        col_interp = interp(t_flat, img_shape, col, mode=interpolation)
         reconstructed += col_interp.view(
             radon_image.size()[0], radon_image.size()[1], output_size, output_size
         )

@@ -91,50 +91,37 @@ def get_fourier_filter(size, filter_name, device=None, dtype=torch.float32):
     return fourier_filter.view(-1, 1)
 
 
-def interp(
-    x: torch.Tensor,
-    xp: torch.Tensor,
-    fp: torch.Tensor,
-    dim: int = -1,
-    extrapolate: str = "constant",
-) -> torch.Tensor:
-    """One-dimensional linear interpolation between monotonically increasing sample
-    points, with extrapolation beyond sample points; by MoritzLange (https://github.com/pytorch/pytorch/issues/50334).
-    Modified to to constant zero extrapolation.
+def interp(x, img_shape, fp, mode="linear"):
+    mode_map = {
+        "nearest": "nearest",
+        "linear": "bilinear",
+        "cubic": "bicubic",
+    }
+    mode = mode_map[mode]
+    N, C, W = fp.size()
+    W_out = x.size()[-1]
 
-    Returns the one-dimensional piecewise linear interpolant to a function with
-    given discrete data points :math:`(xp, fp)`, evaluated at :math:`x`.
+    grid = torch.stack(
+        (
+            torch.zeros_like(x),
+            2.0 * (x + fp.shape[-1] // 2 + 0.5) / fp.shape[-1] - 1,
+        ),
+        dim=-1,
+    ).reshape(N, W_out, 1, 2)
 
-    Args:
-        x: The :math:`x`-coordinates at which to evaluate the interpolated
-            values.
-        xp: The :math:`x`-coordinates of the data points, must be increasing.
-        fp: The :math:`y`-coordinates of the data points, same shape as `xp`.
-        dim: Dimension across which to interpolate.
-        extrapolate: How to handle values outside the range of `xp`. Options are:
-            - 'linear': Extrapolate linearly beyond range of xp values.
-            - 'constant': Use the boundary value of `fp` for `x` values outside `xp`.
+    # grid_sample implemented for 4D (or 5D)
+    col_in = fp.reshape(N, C, W, 1)
 
-    Returns:
-        The interpolated values, same size as `x`.
-    """
-    # Move the interpolation dimension to the last axis
-    x = x.movedim(dim, -1)
-    xp = xp.movedim(dim, -1)
-    fp = fp.movedim(dim, -1)
+    out = F.grid_sample(
+        col_in,
+        grid,
+        mode=mode,
+        padding_mode="zeros",
+        align_corners=False,
+    )
 
-    m = torch.diff(fp) / torch.diff(xp)  # slope
-    b = fp[..., :-1] - m * xp[..., :-1]  # offset
-    indices = torch.searchsorted(xp, x, right=False)
+    # We need to mask out values outside the original range to match numpy interp
+    mask = (x < -img_shape // 2) | (x > img_shape - 1 - img_shape // 2)
+    out = out.masked_fill(mask.unsqueeze(-1), 0)
 
-    if extrapolate == "constant":
-        # Pad m and b to get constant values outside of xp range
-        m = torch.cat([torch.zeros_like(m)[..., :1], m, torch.zeros_like(m)[..., :1]], dim=-1)
-        # We want to zero pad with boundary values
-        b = torch.cat([torch.zeros_like(fp)[..., :1], b, torch.zeros_like(fp)[..., -1:]], dim=-1)
-    else:  # extrapolate == 'linear'
-        indices = torch.clamp(indices - 1, 0, m.shape[-1] - 1)
-
-    values = m.gather(-1, indices) * x + b.gather(-1, indices)
-
-    return values.movedim(-1, dim)
+    return out.squeeze(-2)
