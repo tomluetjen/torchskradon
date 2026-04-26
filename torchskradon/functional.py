@@ -13,6 +13,49 @@ from torchskradon.helpers import (
 
 
 def skradon(image, theta=None, circle=True, preserve_range=False):
+    """
+    Calculates the radon transform of a batch of multi-channel images given specified
+    projection angles.
+
+    Parameters
+    ----------
+    image : torch.Tensor
+        Input batch of multi-channel images. The rotation axis will be located in the pixel with
+        indices ``(image.shape[-2] // 2, image.shape[-1] // 2)``.
+    theta : torch.Tensor, optional
+        Projection angles (in degrees). If `None`, the value is set to
+        torch.arange(180).
+    circle : bool, optional
+        Assume batch of multi-channel images is zero outside the inscribed circle, making the
+        width of each projection (the third dimension of the sinogram)
+        equal to ``min(image.shape[-2:])``.
+    preserve_range : bool, optional
+        Whether to keep the original range of values. Otherwise, the input
+        batch of multi-channel images is converted according to the conventions of `img_as_float`.
+        Also see https://scikit-image.org/docs/dev/user_guide/data_types.html
+
+    Returns
+    -------
+    radon_image : torch.Tensor
+        Batch of multi-channel sinograms. The tomography rotation axis will lie
+        at the pixel index ``radon_image.shape[-2] // 2`` along the 3rd
+        dimension of ``radon_image``.
+
+    References
+    ----------
+    .. [1] `scikit-image <https://github.com/scikit-image/scikit-image/blob/main/src/skimage/transform/radon_transform.py>`_
+    .. [2] AC Kak, M Slaney, "Principles of Computerized Tomographic
+           Imaging", IEEE Press 1988.
+    .. [3] B.R. Ramesh, N. Srinivasa, K. Rajgopal, "An Algorithm for Computing
+           the Discrete Radon Transform With Some Applications", Proceedings of
+           the Fourth IEEE Region 10 International Conference, TENCON '89, 1989
+
+    Notes
+    -----
+    Based on code of Justin K. Romberg
+    (https://www.clear.rice.edu/elec431/projects96/DSP/bpanalysis.html)
+
+    """
     image = convert_to_float(image, preserve_range)
 
     if image.ndim != 4:
@@ -116,6 +159,63 @@ def skiradon(
     circle=True,
     preserve_range=True,
 ):
+    """Inverse radon transform.
+
+    Reconstruct a batch of multi-channel images from the radon transform, using the filtered
+    back projection algorithm.
+
+    Parameters
+    ----------
+    radon_image : torch.Tensor
+        Batch of multi-channel images containing radon transform (sinogram). Each column of
+        an image corresponds to a projection along a different
+        angle. The tomography rotation axis should lie at the pixel
+        index ``radon_image.shape[-2] // 2`` along the 3rd dimension of
+        ``radon_image``.
+    theta : torch.Tensor, optional
+        Reconstruction angles (in degrees). Default: M angles evenly spaced
+        between 0 and 180 (if the shape of `radon_image` is (B, C, N, M)).
+    output_size : int, optional
+        Number of rows and columns in the reconstruction.
+    filter_name : str, optional
+        Filter used in frequency domain filtering. Ramp filter used by default.
+        Filters available: ramp, shepp-logan, cosine, hamming, hann.
+        Assign None to use no filter.
+    interpolation : str, optional
+        Interpolation method used in reconstruction. Methods available:
+        'linear', 'nearest', and 'cubic'.
+    circle : bool, optional
+        Assume the reconstructed batch of multi-channel images is zero outside the inscribed circle.
+        Also changes the default output_size to match the behaviour of
+        ``radon`` called with ``circle=True``.
+    preserve_range : bool, optional
+        Whether to keep the original range of values. Otherwise, the input batch of multi-channel images
+        is converted according to the conventions of `img_as_float`.
+        Also see https://scikit-image.org/docs/dev/user_guide/data_types.html
+
+    Returns
+    -------
+    reconstructed : torch.Tensor
+        Reconstructed batch of multi-channel images. The rotation axis will be located in the pixel
+        with indices
+        ``(reconstructed.shape[-2] // 2, reconstructed.shape[-1] // 2)``.
+
+    References
+    ----------
+    .. [1] `scikit-image <https://github.com/scikit-image/scikit-image/blob/main/src/skimage/transform/radon_transform.py>`_
+    .. [2] AC Kak, M Slaney, "Principles of Computerized Tomographic
+           Imaging", IEEE Press 1988.
+    .. [3] B.R. Ramesh, N. Srinivasa, K. Rajgopal, "An Algorithm for Computing
+           the Discrete Radon Transform With Some Applications", Proceedings of
+           the Fourth IEEE Region 10 International Conference, TENCON '89, 1989
+
+    Notes
+    -----
+    It applies the Fourier slice theorem to reconstruct a batch of multi-channel images by
+    multiplying the frequency domain of the filter with the FFT of the
+    projection data. This algorithm is called filtered back projection.
+
+    """
     if radon_image.ndim != 4:
         raise ValueError("The input image must be 4-D")
 
