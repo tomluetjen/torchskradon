@@ -1,6 +1,6 @@
 # torchskradon
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![PyPI](https://img.shields.io/pypi/v/torchskradon.svg?label=PyPI&logo=pypi)](https://pypi.org/project/torchskradon/) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon)
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Python](https://img.shields.io/badge/python-3.10%20|%203.11%20|%203.12-blue)](#) [![PyPI](https://img.shields.io/pypi/v/torchskradon.svg?label=PyPI&logo=pypi)](https://pypi.org/project/torchskradon/) [![CI](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/tomluetjen/torchskradon/actions/workflows/python-app.yml) [![Coverage](https://codecov.io/gh/tomluetjen/torchskradon/branch/main/graph/badge.svg)](https://codecov.io/gh/tomluetjen/torchskradon) [![DOI](https://zenodo.org/badge/1067241947.svg)](https://doi.org/10.5281/zenodo.19798870)
 
 
 ## About

@@ -9,6 +9,7 @@ authors:
 abstract: "A differentiable implementation of scikit-image's Radon transform and filtered backprojection in PyTorch."
 repository-code: "https://github.com/tomluetjen/torchskradon"
 url: "https://pypi.org/project/torchskradon/"
+doi: "10.5281/zenodo.19798871"
 license: MIT
 version: 0.1.3
 date-released: "2026-04-26"
