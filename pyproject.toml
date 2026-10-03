@@ -7,7 +7,7 @@ name = "torchskradon"
 version = "0.1.4"
 description = "A differentiable implementation of scikit-image's Radon transform and filtered backprojection in PyTorch"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Tom Lütjen", email = "tom.luetjen@icloud.com" }]
 keywords = ["pytorch", "scikit-image", "radon", "tomography"]
@@ -16,9 +16,9 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 
@@ -55,7 +55,7 @@ exclude = ["tests*", "examples*", "benchmarks*"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
