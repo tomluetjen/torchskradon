@@ -18,14 +18,14 @@ from skimage.data import shepp_logan_phantom
 from skimage.transform import rescale
 from torchskradon.functional import skradon, skiradon
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 image = shepp_logan_phantom()
-image = rescale(image, scale=0.4, mode='reflect', channel_axis=None)
+image = rescale(image, scale=0.4, mode="reflect", channel_axis=None)
 image = torch.from_numpy(image).unsqueeze(0).unsqueeze(0).to(device)
-theta = torch.linspace(0.0, 180.0, max(image.size()[2:])+1)[:-1].to(device)
+theta = torch.linspace(0.0, 180.0, max(image.size()[2:]) + 1)[:-1].to(device)
 sinogram = skradon(image, theta=theta)
-reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name='ramp')
+reconstruction_fbp = skiradon(sinogram, theta=theta, filter_name="ramp")
 ```
 
 ## Examples
